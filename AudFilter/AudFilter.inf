@@ -1,0 +1,84 @@
+;
+; AudFilter.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=AudFilter.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+AudFilter_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+AudFilter.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%AudFilter.DeviceDesc%=AudFilter_Device, ACPI\AFLT0001 ; TODO: edit hw-id
+
+[AudFilter_Device.NT]
+CopyFiles=Drivers_Dir
+
+[AudFilter_Device.NT.Filters]
+AddFilter=AudFilter,,AudFilter_DeviceInstall 
+
+[AudFilter_DeviceInstall]
+FilterPosition = Upper
+
+[Drivers_Dir]
+AudFilter.sys
+
+;-------------- Service installation
+[AudFilter_Device.NT.Services]
+AddService = AudFilter,%SPSVCINST_ASSOCSERVICE%, AudFilter_Service_Inst
+
+; -------------- AudFilter driver install sections
+[AudFilter_Service_Inst]
+DisplayName    = %AudFilter.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\AudFilter.sys
+
+;
+;--- AudFilter_Device Coinstaller installation ------
+;
+
+[AudFilter_Device.NT.CoInstallers]
+AddReg=AudFilter_Device_CoInstaller_AddReg
+CopyFiles=AudFilter_Device_CoInstaller_CopyFiles
+
+[AudFilter_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[AudFilter_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[AudFilter_Device.NT.Wdf]
+KmdfService =  AudFilter, AudFilter_wdfsect
+
+[AudFilter_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="woa msmnile"
+DiskName = "AudFilter Installation Disk"
+AudFilter.DeviceDesc = "AudFilter Device"
+AudFilter.SVCDESC = "AudFilter Service"

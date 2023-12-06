@@ -1,0 +1,77 @@
+;
+; TAS2559_amp.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class       = Media
+ClassGuid   = {4d36e96c-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+CatalogFile=TAS2559_amp.cat
+DriverVer=01/01/2023,1.0.0.1
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+TAS2559_amp_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+TAS2559_amp.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%TAS2559_amp.DeviceDesc%=TAS2559_amp_Device, ACPI\TTAS2559 ; TODO: edit hw-id
+
+[TAS2559_amp_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+TAS2559_amp.sys
+
+;-------------- Service installation
+[TAS2559_amp_Device.NT.Services]
+AddService = TAS2559_amp,%SPSVCINST_ASSOCSERVICE%, TAS2559_amp_Service_Inst
+
+; -------------- TAS2559_amp driver install sections
+[TAS2559_amp_Service_Inst]
+DisplayName    = %TAS2559_amp.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\TAS2559_amp.sys
+
+;
+;--- TAS2559_amp_Device Coinstaller installation ------
+;
+
+[TAS2559_amp_Device.NT.CoInstallers]
+AddReg=TAS2559_amp_Device_CoInstaller_AddReg
+CopyFiles=TAS2559_amp_Device_CoInstaller_CopyFiles
+
+[TAS2559_amp_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[TAS2559_amp_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[TAS2559_amp_Device.NT.Wdf]
+KmdfService =  TAS2559_amp, TAS2559_amp_wdfsect
+[TAS2559_amp_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="WoA msmnile" ;TODO: Replace with your manufacturer name
+DiskName = "TAS2559_amp Installation Disk"
+TAS2559_amp.DeviceDesc = "TAS2559_amp Device"
+TAS2559_amp.SVCDESC = "TAS2559_amp Service"
